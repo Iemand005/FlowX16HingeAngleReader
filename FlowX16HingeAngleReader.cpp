@@ -21,7 +21,6 @@ int hingeAngle = 0, lidAngle = 0, bodyAngle = 0;
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -67,15 +66,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
         // Get the hinge angle from the sensor
         HRESULT hr = pHingeSensorReader->GetHingeAngle(&hingeAngle, &lidAngle, &bodyAngle);
-        if (SUCCEEDED(hr)) {
-            std::wcout << L"Hinge Angle: " << hingeAngle << L" Lid Angle: " << lidAngle << L" Body Angle: " << bodyAngle << std::endl;
-
-            InvalidateRect(hMainWnd, NULL, TRUE);
-            UpdateWindow(hMainWnd);
-
-        } else {
-            std::wcerr << L"Failed to get hinge angle. HRESULT: " << hr << std::endl;
-        }
+        if (FAILED(hr)) return hr;
+        
+        InvalidateRect(hMainWnd, NULL, TRUE);
+        UpdateWindow(hMainWnd);
     }
 
     return (int) msg.wParam;
@@ -178,29 +172,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             hbmOld = (HBITMAP)SelectObject(hdcMem, hbmMem);
 
             ReleaseDC(hWnd, hdc);
-
-            //HPEN hPen = CreatePen(PS_SOLID, 2, RGB(255, 0, 0));
-            //HBRUSH hBrush = CreateSolidBrush(RGB(255, 0, 0));
-
-            //SelectObject(hdcMem, hPen);
-            //SelectObject(hdcMem, hBrush);
-        }
-        break;
-    case WM_COMMAND:
-        {
-            int wmId = LOWORD(wParam);
-            // Parse the menu selections:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
         }
         break;
     case WM_PAINT:
@@ -217,12 +188,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 hbmMem = CreateCompatibleBitmap(hdc, width, height);
             }
 
-            //SelectObject(hdcMem, hbmMem);
-
             RECT rc;
             GetClientRect(hWnd, &rc);
 
-            // Clear back buffer
             FillRect(hdcMem, &rc, (HBRUSH)(COLOR_WINDOW + 1));
 
             HPEN hPen = CreatePen(PS_SOLID, 2, RGB(255, 0, 0));
@@ -231,15 +199,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             HPEN hOldPen = (HPEN)SelectObject(hdcMem, hPen);
             HBRUSH hOldBrush = (HBRUSH)SelectObject(hdcMem, hBrush);
 
-            
             static WCHAR labelBuffer[32];
-            wsprintfW(labelBuffer, L"%d", hingeAngle);
+            wsprintfW(labelBuffer, L"Hinge: %d, body: %d, lid: %d", hingeAngle, bodyAngle, lidAngle);
 
-            RECT rect = { 10, 10, 200, 30 };
+            RECT rect = { 10, 10, 230, 30 };
             DrawText(hdcMem, labelBuffer, -1, &rect, DT_LEFT | DT_VCENTER);
-
-            /*DOUBLE degrees = hingeAngle;
-            DOUBLE radians = degrees * (M_PI / 180.0);*/
 
             POINT hingeStart = { width / 4, height / 2 };
             POINT bodyLidStart = { width / 4 + width / 2, height / 2 };
@@ -247,12 +211,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             INT margin = 10;
             INT length = min(width / 2, height) / 2 - margin;
 
-            /*INT xEnd = xStart + (INT)(length * cos(radians));
-            INT yEnd = yStart - (INT)(length * sin(radians));*/ // Subtract because Y increases downward
-
 			POINT hingeEnd = CreateClockHandWithDegrees(hingeAngle, hingeStart, length);
-
-            //MoveToEx(hdcMem, xStart, yStart, NULL);
 
             POINT hingePoints[] = { {hingeStart.x + length, hingeStart.y}, {hingeStart.x, hingeStart.y}, {hingeEnd.x, hingeEnd.y} };
             Polyline(hdcMem, hingePoints, ARRAYSIZE(hingePoints));
@@ -302,24 +261,4 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
     return 0;
-}
-
-// Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    UNREFERENCED_PARAMETER(lParam);
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
-
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        }
-        break;
-    }
-    return (INT_PTR)FALSE;
 }
