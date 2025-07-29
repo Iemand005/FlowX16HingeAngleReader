@@ -7,10 +7,9 @@ HingeSensorReader::HingeSensorReader()
 
 HingeSensorReader::~HingeSensorReader()
 {
-	// Destructor implementation
 	if (pSensor) pSensor->Release();
-	if (pSensorManager) pSensorManager->Release();
 	if (pDataFields) pDataFields->Release();
+	if (pSensorManager) pSensorManager->Release();
 }
 
 HRESULT HingeSensorReader::Init()
@@ -57,9 +56,7 @@ HRESULT HingeSensorReader::GetHingeAngle(int* angle, int* lidAngle, int* bodyAng
         ThrowIfFailed(pDataReport->GetSensorValue(pLidAngleKey, &pLidAngleValue));
         ThrowIfFailed(pDataReport->GetSensorValue(pBodyAngleKey, &pBodyAngleValue));
 
-        *angle = pAngleValue.intVal;
-        *lidAngle = pBodyAngleValue.intVal;
-        *bodyAngle = pLidAngleValue.intVal;
+        *angle = pAngleValue.intVal, *lidAngle = pBodyAngleValue.intVal, *bodyAngle = pLidAngleValue.intVal;
 
         ThrowIfFailed(PropVariantClear(&pAngleValue));
         ThrowIfFailed(PropVariantClear(&pLidAngleValue));
