@@ -138,6 +138,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="FlowX16HingeAngleReader.ico" />
+    <Image Include="Screenshot.png" />
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>

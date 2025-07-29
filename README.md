@@ -17,3 +17,5 @@ The sensor reports 3 values:
 I was going to make something that does this myself with software using the accelerometers, but I found out that the ASUS ROG Flow X16 already has a controller that does these calculations, though the values are in degrees and they are integer values so it's not the most precise.
 
 The Flow also has two motion detectors, one for the display and one for the body, not sure what their purpose is, perhaps the body motion sensor is what the controller watches to determine if the hinge angle should be updated.
+
+![IMAGE](Screenshot.png)
