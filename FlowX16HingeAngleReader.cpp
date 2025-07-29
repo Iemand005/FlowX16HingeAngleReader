@@ -171,7 +171,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             hbmOld = (HBITMAP)SelectObject(hdcMem, hbmMem);
 
             ReleaseDC(hWnd, hdc);
+
+            //HPEN hPen = CreatePen(PS_SOLID, 2, RGB(255, 0, 0));
+            //HBRUSH hBrush = CreateSolidBrush(RGB(255, 0, 0));
+
+            //SelectObject(hdcMem, hPen);
+            //SelectObject(hdcMem, hBrush);
         }
+        break;
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
@@ -203,14 +210,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 hbmMem = CreateCompatibleBitmap(hdc, width, height);
             }
 
-            SelectObject(hdcMem, hbmMem);
+            //SelectObject(hdcMem, hbmMem);
+
+            RECT rc;
+            GetClientRect(hWnd, &rc);
+
+            // Clear back buffer
+            FillRect(hdcMem, &rc, (HBRUSH)(COLOR_WINDOW + 1));
+
+            HPEN hPen = CreatePen(PS_SOLID, 2, RGB(255, 0, 0));
+            HBRUSH hBrush = CreateSolidBrush(RGB(255, 0, 0));
+
+            HPEN hOldPen = (HPEN)SelectObject(hdcMem, hPen);
+            HBRUSH hOldBrush = (HBRUSH)SelectObject(hdcMem, hBrush);
 
             
             static WCHAR labelBuffer[32];
             wsprintfW(labelBuffer, L"%d", hingeAngle);
 
             RECT rect = { 10, 10, 200, 30 };
-            DrawText(hdc, labelBuffer, -1, &rect, DT_LEFT | DT_VCENTER);
+            DrawText(hdcMem, labelBuffer, -1, &rect, DT_LEFT | DT_VCENTER);
 
             DOUBLE degrees = hingeAngle;
             DOUBLE radians = degrees * (M_PI / 180.0);
@@ -220,29 +239,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             INT length = min(width / 2, height) / 2;
 
-            // Calculate end point coordinates
             INT xEnd = xStart + (INT)(length * cos(radians));
             INT yEnd = yStart - (INT)(length * sin(radians)); // Subtract because Y increases downward
 
             // Draw the line
-            MoveToEx(hdc, xStart, yStart, NULL);
+            MoveToEx(hdcMem, xStart, yStart, NULL);
 
             POINT points[] = { {xStart + length, yStart}, {xStart, yStart}, {xEnd, yEnd} };
-            Polyline(hdc, points, ARRAYSIZE(points));
+            Polyline(hdcMem, points, ARRAYSIZE(points));
+
+
+            SelectObject(hdcMem, hOldPen);
+            SelectObject(hdcMem, hOldBrush);
+            DeleteObject(hPen);
+            DeleteObject(hBrush);
+
+            BitBlt(hdc, 0, 0, rc.right, rc.bottom, hdcMem, 0, 0, SRCCOPY);
 
             EndPaint(hWnd, &ps);
         }
         break;
+    case WM_ERASEBKGND:
+        return 1;
     case WM_SIZE:
         {
             width = LOWORD(lParam);
             height = HIWORD(lParam);
 
-            // Delete old bitmap if exists
-            if (hbmMem) DeleteObject(hbmMem);
+            if (hbmMem) {
+                SelectObject(hdcMem, hbmOld);
+                DeleteObject(hbmMem);
+            }
 
             HDC hdc = GetDC(hWnd);
             hbmMem = CreateCompatibleBitmap(hdc, width, height);
+            hbmOld = (HBITMAP)SelectObject(hdcMem, hbmMem);
             ReleaseDC(hWnd, hdc);
 
             InvalidateRect(hWnd, NULL, FALSE);
