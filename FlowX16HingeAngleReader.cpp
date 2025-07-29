@@ -137,6 +137,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
+POINT CreateClockHandWithDegrees(INT degrees, POINT start, INT length)
+{
+    DOUBLE radians = degrees * (M_PI / 180.0);
+
+    return { start.x + (INT)(length * cos(radians)), start.y - (INT)(length * sin(radians)) };
+}
+
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -231,22 +238,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             RECT rect = { 10, 10, 200, 30 };
             DrawText(hdcMem, labelBuffer, -1, &rect, DT_LEFT | DT_VCENTER);
 
-            DOUBLE degrees = hingeAngle;
-            DOUBLE radians = degrees * (M_PI / 180.0);
+            /*DOUBLE degrees = hingeAngle;
+            DOUBLE radians = degrees * (M_PI / 180.0);*/
 
-            INT xStart = width / 4;
-            INT yStart = height / 2;
+            POINT hingeStart = { width / 4, height / 2 };
+            POINT bodyLidStart = { width / 4 + width / 2, height / 2 };
 
-            INT length = min(width / 2, height) / 2;
+            INT margin = 10;
+            INT length = min(width / 2, height) / 2 - margin;
 
-            INT xEnd = xStart + (INT)(length * cos(radians));
-            INT yEnd = yStart - (INT)(length * sin(radians)); // Subtract because Y increases downward
+            /*INT xEnd = xStart + (INT)(length * cos(radians));
+            INT yEnd = yStart - (INT)(length * sin(radians));*/ // Subtract because Y increases downward
 
-            // Draw the line
-            MoveToEx(hdcMem, xStart, yStart, NULL);
+			POINT hingeEnd = CreateClockHandWithDegrees(hingeAngle, hingeStart, length);
 
-            POINT points[] = { {xStart + length, yStart}, {xStart, yStart}, {xEnd, yEnd} };
-            Polyline(hdcMem, points, ARRAYSIZE(points));
+            //MoveToEx(hdcMem, xStart, yStart, NULL);
+
+            POINT hingePoints[] = { {hingeStart.x + length, hingeStart.y}, {hingeStart.x, hingeStart.y}, {hingeEnd.x, hingeEnd.y} };
+            Polyline(hdcMem, hingePoints, ARRAYSIZE(hingePoints));
+
+            POINT lidEnd = CreateClockHandWithDegrees(lidAngle, bodyLidStart, length);
+            POINT bodyEnd = CreateClockHandWithDegrees(bodyAngle, bodyLidStart, length);
+
+            POINT lidBodyPoints[] = { {bodyEnd.x, bodyEnd.y}, {bodyLidStart.x, bodyLidStart.y}, {lidEnd.x, lidEnd.y} };
+            Polyline(hdcMem, lidBodyPoints, ARRAYSIZE(lidBodyPoints));
 
 
             SelectObject(hdcMem, hOldPen);
