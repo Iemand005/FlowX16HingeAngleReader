@@ -8,8 +8,14 @@
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
+HWND hMainWnd;
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+
+
+HingeSensorReader* pHingeSensorReader;            // Hinge sensor reader instance
+int hingeAngle = 0, lidAngle = 0, bodyAngle = 0;
+
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -26,6 +32,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // TODO: Place code here.
+	pHingeSensorReader = new HingeSensorReader();
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -43,12 +50,31 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MSG msg;
 
     // Main message loop:
-    while (GetMessage(&msg, nullptr, 0, 0))
-    {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+    bool quitRequested = false;
+    while (!quitRequested) {
+        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
         {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            if (msg.message == WM_QUIT) {
+                quitRequested = true;
+                break;
+            }
+            if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+            {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
+        }
+
+        // Get the hinge angle from the sensor
+        HRESULT hr = pHingeSensorReader->GetHingeAngle(&hingeAngle, &lidAngle, &bodyAngle);
+        if (SUCCEEDED(hr)) {
+            std::wcout << L"Hinge Angle: " << hingeAngle << L" Lid Angle: " << lidAngle << L" Body Angle: " << bodyAngle << std::endl;
+
+            InvalidateRect(hMainWnd, NULL, TRUE);
+            UpdateWindow(hMainWnd);
+
+        } else {
+            std::wcerr << L"Failed to get hinge angle. HRESULT: " << hr << std::endl;
         }
     }
 
@@ -123,8 +149,29 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    static HBITMAP hbmMem = NULL;
+    static HBITMAP hbmOld = NULL;
+    static HDC hdcMem;
+	static int width, height;
+
     switch (message)
     {
+    case WM_CREATE:
+        {
+            hMainWnd = hWnd;
+            HDC hdc = GetDC(hWnd);
+
+            hdcMem = CreateCompatibleDC(hdc);
+
+            RECT rc;
+            GetClientRect(hWnd, &rc);
+
+            hbmMem = CreateCompatibleBitmap(hdc, rc.right, rc.bottom);
+
+            hbmOld = (HBITMAP)SelectObject(hdcMem, hbmMem);
+
+            ReleaseDC(hWnd, hdc);
+        }
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
@@ -146,11 +193,63 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
-            // TODO: Add any drawing code that uses hdc here...
+
+            if (!hbmMem) {
+                RECT rcClient;
+                GetClientRect(hWnd, &rcClient);
+                width = rcClient.right - rcClient.left;
+                height = rcClient.bottom - rcClient.top;
+            
+                hbmMem = CreateCompatibleBitmap(hdc, width, height);
+            }
+
+            SelectObject(hdcMem, hbmMem);
+
+            
+            static WCHAR labelBuffer[32];
+            wsprintfW(labelBuffer, L"%d", hingeAngle);
+
+            RECT rect = { 10, 10, 200, 30 };
+            DrawText(hdc, labelBuffer, -1, &rect, DT_LEFT | DT_VCENTER);
+
+            DOUBLE degrees = hingeAngle;
+            DOUBLE radians = degrees * (M_PI / 180.0);
+
+            INT xStart = width / 4;
+            INT yStart = height / 2;
+
+            INT length = min(width / 2, height) / 2;
+
+            // Calculate end point coordinates
+            INT xEnd = xStart + (INT)(length * cos(radians));
+            INT yEnd = yStart - (INT)(length * sin(radians)); // Subtract because Y increases downward
+
+            // Draw the line
+            MoveToEx(hdc, xStart, yStart, NULL);
+
+            POINT points[] = { {xStart + length, yStart}, {xStart, yStart}, {xEnd, yEnd} };
+            Polyline(hdc, points, ARRAYSIZE(points));
+
             EndPaint(hWnd, &ps);
         }
         break;
+    case WM_SIZE:
+        {
+            width = LOWORD(lParam);
+            height = HIWORD(lParam);
+
+            // Delete old bitmap if exists
+            if (hbmMem) DeleteObject(hbmMem);
+
+            HDC hdc = GetDC(hWnd);
+            hbmMem = CreateCompatibleBitmap(hdc, width, height);
+            ReleaseDC(hWnd, hdc);
+
+            InvalidateRect(hWnd, NULL, FALSE);
+            break;
+        }
     case WM_DESTROY:
+        DeleteObject(hbmMem);
         PostQuitMessage(0);
         break;
     default:

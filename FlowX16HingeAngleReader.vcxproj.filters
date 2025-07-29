@@ -27,7 +27,7 @@
     <ClInclude Include="FlowX16HingeAngleReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SensorReader.h">
+    <ClInclude Include="HingeSensorReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,7 +35,7 @@
     <ClCompile Include="FlowX16HingeAngleReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SensorReader.cpp">
+    <ClCompile Include="HingeSensorReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

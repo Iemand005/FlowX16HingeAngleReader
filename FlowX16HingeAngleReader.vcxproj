@@ -126,12 +126,12 @@
     <ClInclude Include="FlowX16HingeAngleReader.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="SensorReader.h" />
+    <ClInclude Include="HingeSensorReader.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FlowX16HingeAngleReader.cpp" />
-    <ClCompile Include="SensorReader.cpp" />
+    <ClCompile Include="HingeSensorReader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FlowX16HingeAngleReader.rc" />
