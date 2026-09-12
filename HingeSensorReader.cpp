@@ -53,20 +53,20 @@ HRESULT HingeSensorReader::GetHingeAngle(int* angle, int* lidAngle, int* bodyAng
     try {
         ThrowIfFailed(pSensor->GetData(&pDataReport));
 
-        PROPVARIANT pAngleValue, pLidAngleValue, pBodyAngleValue;
+        PROPVARIANT pAngleValue, pBodyAngleValue, pLidyAngleValue;
         PropVariantInit(&pAngleValue);
-        PropVariantInit(&pLidAngleValue);
         PropVariantInit(&pBodyAngleValue);
+        PropVariantInit(&pLidyAngleValue);
 
         ThrowIfFailed(pDataReport->GetSensorValue(pAngleKey, &pAngleValue));
-        ThrowIfFailed(pDataReport->GetSensorValue(pLidAngleKey, &pLidAngleValue));
-        ThrowIfFailed(pDataReport->GetSensorValue(pBodyAngleKey, &pBodyAngleValue));
+        ThrowIfFailed(pDataReport->GetSensorValue(pLidAngleKey, &pBodyAngleValue));
+        ThrowIfFailed(pDataReport->GetSensorValue(pBodyAngleKey, &pLidyAngleValue));
 
-        *angle = pAngleValue.intVal, *lidAngle = pBodyAngleValue.intVal, *bodyAngle = pLidAngleValue.intVal;
+        *angle = pAngleValue.intVal, *lidAngle = pLidyAngleValue.intVal, *bodyAngle = pBodyAngleValue.intVal;
 
         ThrowIfFailed(PropVariantClear(&pAngleValue));
-        ThrowIfFailed(PropVariantClear(&pLidAngleValue));
         ThrowIfFailed(PropVariantClear(&pBodyAngleValue));
+        ThrowIfFailed(PropVariantClear(&pLidyAngleValue));
     }
     catch (HRESULT hrError) { hr = hrError; }
 
