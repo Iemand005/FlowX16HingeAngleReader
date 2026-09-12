@@ -30,7 +30,9 @@ public:
     ~HingeSensorReader();
 
     HRESULT Init();
-    
+
+    bool IsReady() const;
+
     HRESULT GetHingeAngle(int* angle, int* lidAngle, int* bodyAngle);
 };
 

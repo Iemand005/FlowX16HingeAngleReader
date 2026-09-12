@@ -33,8 +33,14 @@ HRESULT HingeSensorReader::Init()
     catch (HRESULT hrError) { hr = hrError; }
 
     pSensorManager->Release();
+    pSensorManager = NULL;
 
     return hr;
+}
+
+bool HingeSensorReader::IsReady() const
+{
+    return pSensor != NULL;
 }
 
 HRESULT HingeSensorReader::GetHingeAngle(int* angle, int* lidAngle, int* bodyAngle)
