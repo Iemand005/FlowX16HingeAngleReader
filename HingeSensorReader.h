@@ -10,6 +10,8 @@
 #include <sensors.h>
 #pragma comment(lib, "sensorsapi.lib")
 
+#include "AccelerometerReader.h"
+
 
 class HingeSensorReader
 {
@@ -20,6 +22,8 @@ private:
     IPortableDeviceKeyCollection* pDataFields = NULL;
 
     PROPERTYKEY pAngleKey, pLidAngleKey, pBodyAngleKey;
+
+    AccelerometerReader accelerometerReader;
 
     void ThrowIfFailed(HRESULT hr) {
         if (FAILED(hr)) throw hr;
@@ -34,5 +38,6 @@ public:
     bool IsReady() const;
 
     HRESULT GetHingeAngle(int* angle, int* lidAngle, int* bodyAngle);
-};
 
+    bool useRawAccelerometer = false;
+};
