@@ -9,7 +9,10 @@ HingeSensorReader::~HingeSensorReader()
 {
 	if (pSensor) pSensor->Release();
 	if (pDataFields) pDataFields->Release();
-	if (pSensorManager) pSensorManager->Release();
+    if (pSensorManager) {
+        pSensorManager->Release();
+        pSensorManager = NULL;
+    }
 }
 
 HRESULT HingeSensorReader::Init()
