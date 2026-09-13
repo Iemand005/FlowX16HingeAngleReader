@@ -70,7 +70,10 @@ bool HingeSensorReader::IsReady() const
     return pSensor != NULL;
 }
 
-HRESULT HingeSensorReader::GetHingeAngle(int* angle, int* lidAngle, int* bodyAngle) {
+HRESULT HingeSensorReader::GetHingeAngleFloat(int* angle, int* lidAngle, int* bodyAngle) {
+}
+
+HRESULT HingeSensorReader::GetHingeAngleFloat(int* angle, int* lidAngle, int* bodyAngle) {
     if (useRawAccelerometer)
     {
         double lx, ly, lz;
