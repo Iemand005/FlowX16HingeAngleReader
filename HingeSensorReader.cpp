@@ -70,15 +70,11 @@ bool HingeSensorReader::IsReady() const
     return pSensor != NULL;
 }
 
-HRESULT HingeSensorReader::GetHingeAngle(
-    int* angle,
-    int* lidAngle,
-    int* bodyAngle)
-{
+HRESULT HingeSensorReader::GetHingeAngle(int* angle, int* lidAngle, int* bodyAngle) {
     if (useRawAccelerometer)
     {
-        float lx, ly, lz;
-        float bx, by, bz;
+        double lx, ly, lz;
+        double bx, by, bz;
 
         HRESULT hr = accelerometerReader.GetReading(
             0,
