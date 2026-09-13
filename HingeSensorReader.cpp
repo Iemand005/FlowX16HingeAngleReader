@@ -121,7 +121,7 @@ HRESULT HingeSensorReader::GetHingeAngle(int* angle, int* lidAngle, int* bodyAng
         if (dot < -1.0f)
             dot = -1.0f;
 
-        *angle = (int)(acosf(dot) * 180.0f / 3.14159265358979323846f);
+        *angle = acosf(dot) * 180.0f / 3.14159265358979323846f;
 
         return S_OK;
     }

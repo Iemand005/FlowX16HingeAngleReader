@@ -38,6 +38,7 @@ public:
     bool IsReady() const;
 
     HRESULT GetHingeAngle(int* angle, int* lidAngle, int* bodyAngle);
+    HRESULT GetHingeAngleFloat(float* angle, float* lidAngle, float* bodyAngle);
 
     bool useRawAccelerometer = false;
 };
